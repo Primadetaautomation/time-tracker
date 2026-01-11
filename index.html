@@ -166,16 +166,19 @@
     <script src="js/storage.js"></script>
     <script src="js/app.js"></script>
 
-    <!-- Service Worker Registratie voor PWA -->
+    <!-- Service Worker Registratie voor PWA (alleen via server, niet file://) -->
     <script>
-        if ('serviceWorker' in navigator) {
+        // Service Worker alleen registreren als we via http(s) draaien
+        // Dit voorkomt errors bij direct openen van index.html
+        if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
+                navigator.serviceWorker.register('./sw.js')
                     .then((registration) => {
                         console.log('ServiceWorker geregistreerd:', registration.scope);
                     })
                     .catch((error) => {
-                        console.log('ServiceWorker registratie mislukt:', error);
+                        // Stille fout - app werkt nog steeds, alleen zonder offline support
+                        console.log('ServiceWorker niet beschikbaar');
                     });
             });
         }
