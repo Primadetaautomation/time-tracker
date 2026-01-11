@@ -1,175 +1,151 @@
-# Tijdregistratie Applicatie
+# Tijdregistratie
 
-Een gratis, open-source tijdregistratie systeem dat volledig lokaal draait. Perfect voor freelancers en kleine bedrijven die hun uren willen bijhouden zonder abonnementskosten.
+Een gratis, makkelijk te installeren tijdregistratie app voor Windows en Mac.
 
-## Functies
+![Screenshot](assets/screenshot.png)
 
-### Web Interface
-- **Projecten beheren**: Maak en beheer verschillende projecten met kleuren en uurtarieven
-- **Timer functie**: Start/stop timer voor real-time tijdregistratie
-- **Handmatige invoer**: Voer handmatig uren in als dat handiger is
-- **Overzichten**: Bekijk dagelijkse, wekelijkse en maandelijkse rapportages
-- **Export naar CSV**: Exporteer je uren voor facturatie (Excel-compatible)
-- **Offline gebruik**: Werkt volledig offline met lokale opslag in je browser
+## Installeren (Makkelijk!)
 
-### Desktop Tray App (Windows & Mac)
-- **Menubalk integratie**: Snel switchen tussen projecten vanuit je menubalk/systray
-- **Automatische tracking**: Zie in één oogopslag hoeveel uur je vandaag hebt gewerkt
-- **Timer in menubalk**: Lopende timer zichtbaar in je menubalk
+### Optie 1: Desktop App (Aanbevolen)
 
-### Activity Tracker (Optioneel)
-- **Automatisch loggen**: Houdt bij welke applicaties je gebruikt
-- **Slimme regels**: Koppel automatisch activiteiten aan projecten
-- **Privacy-first**: Alles blijft lokaal op je computer
+**Windows:**
+1. Download en installeer [Node.js](https://nodejs.org) (LTS versie)
+2. Download deze repository als ZIP en pak uit
+3. Dubbelklik op `installers/install-windows.bat`
+4. Volg de instructies - klaar!
 
-## Aan de slag
+**Mac:**
+1. Installeer Node.js: `brew install node` (of download van [nodejs.org](https://nodejs.org))
+2. Download deze repository als ZIP en pak uit
+3. Dubbelklik op `installers/install-mac.command`
+4. Sleep de app naar Applications - klaar!
 
-### 1. Web Interface (Simpelste optie)
+### Optie 2: Direct in Browser
 
-Open gewoon `index.html` in je webbrowser. Klaar!
+Gewoon `index.html` openen in je browser. Werkt meteen!
 
+> **Tip:** In Chrome/Edge kun je de app "installeren" via het menu (drie puntjes) → "Installeer Tijdregistratie". Dan krijg je een echte app-icoon.
+
+### Optie 3: Draagbare Versie (Portable)
+
+1. Download de repository
+2. Open een terminal in de folder
+3. `npm install && npm start`
+
+## Hoe werkt het?
+
+### Timer gebruiken
+1. Maak eerst een **project** aan (klik "+ Nieuw" in de sidebar)
+2. Selecteer je project in de dropdown
+3. Klik **Start** - de timer loopt!
+4. Klik **Stop** wanneer je klaar bent
+5. Je uren worden automatisch opgeslagen
+
+### Handmatig invoeren
+- Vul het formulier in onder "Handmatige invoer"
+- Handig voor uren van gisteren of vorige week
+
+### Exporteren voor facturatie
+- Klik "Exporteer CSV"
+- Open in Excel of Google Sheets
+- Inclusief berekende bedragen (als je een uurtarief hebt ingesteld)
+
+## Features
+
+| Feature | Beschikbaar |
+|---------|-------------|
+| Timer met start/stop | ✅ |
+| Handmatige invoer | ✅ |
+| Meerdere projecten | ✅ |
+| Uurtarieven per project | ✅ |
+| Export naar CSV/Excel | ✅ |
+| Werkt offline | ✅ |
+| Desktop app (Windows/Mac) | ✅ |
+| System tray icoon | ✅ |
+| Keyboard shortcuts | ✅ |
+| Data sync tussen apparaten | ❌ (lokaal alleen) |
+
+## Keyboard Shortcuts
+
+| Actie | Windows | Mac |
+|-------|---------|-----|
+| Start/Stop timer | Ctrl+T | Cmd+T |
+| Nieuw project | Ctrl+N | Cmd+N |
+| Exporteer CSV | Ctrl+E | Cmd+E |
+| Volledig scherm | F11 | Cmd+Ctrl+F |
+
+## Waar worden mijn uren opgeslagen?
+
+- **Browser versie:** In je browser (LocalStorage)
+- **Desktop app:** In je browser engine (Chromium)
+
+Al je data blijft **lokaal op je computer**. Er wordt niets naar externe servers gestuurd.
+
+### Backup maken
+Gebruik de "Exporteer CSV" functie om regelmatig een backup te maken van je uren.
+
+## Technisch
+
+### Vereisten voor bouwen
+- Node.js 18 of hoger
+- npm
+
+### Development
 ```bash
-# Of start een lokale server:
-python -m http.server 8000
-# Ga naar http://localhost:8000
+# Installeer dependencies
+npm install
+
+# Start in development mode
+npm start
+
+# Bouw voor productie
+npm run build        # Alle platforms
+npm run build:win    # Alleen Windows
+npm run build:mac    # Alleen Mac
+npm run build:linux  # Alleen Linux
 ```
 
-### 2. Desktop Tray App (Aanbevolen)
-
-Installeer de dependencies en start de tray app:
-
-```bash
-cd tracker
-pip install -r requirements.txt
-
-# Start de tray applicatie
-python tray_app.py
-```
-
-Je ziet nu een klok-icoon in je menubalk/systray. Klik erop om:
-- Snel een project te selecteren en timer te starten
-- Je dagelijkse uren te zien
-- De timer te stoppen
-
-### 3. Automatische Activity Tracking (Geavanceerd)
-
-```bash
-cd tracker
-pip install -r requirements.txt
-
-# Extra dependencies voor je platform:
-# Windows:
-pip install pywin32
-
-# macOS:
-pip install pyobjc-framework-Quartz pyobjc-framework-AppKit
-
-# Start tracking
-python activity_tracker.py start
-```
-
-## Projectstructuur
-
+### Projectstructuur
 ```
 tijdregistratie/
-├── index.html              # Web interface
+├── index.html          # Hoofdpagina
+├── manifest.json       # PWA configuratie
+├── sw.js               # Service worker (offline)
+├── package.json        # Node.js configuratie
 ├── css/
-│   └── style.css           # Styling
+│   └── style.css
 ├── js/
-│   ├── app.js              # Hoofdapplicatie logica
-│   ├── storage.js          # Browser LocalStorage
-│   └── utils.js            # Hulpfuncties
-├── tracker/                # Desktop tools
-│   ├── activity_tracker.py # Automatische activity logging
-│   ├── tray_app.py         # Menubalk/systray applicatie
-│   ├── requirements.txt    # Python dependencies
-│   └── data/               # Lokale data opslag
-└── README.md
+│   ├── app.js          # Hoofdlogica
+│   ├── storage.js      # Data opslag
+│   └── utils.js        # Hulpfuncties
+├── electron/
+│   ├── main.js         # Desktop app main process
+│   └── preload.js      # Security bridge
+├── installers/
+│   ├── install-windows.bat
+│   └── install-mac.command
+└── assets/
+    └── icons...
 ```
 
-## Gebruik
+## Veelgestelde vragen
 
-### Web Interface
+**Kan ik dit gebruiken op meerdere computers?**
+Ja, maar de data synchroniseert niet automatisch. Gebruik de CSV export om data over te zetten.
 
-1. **Project aanmaken**: Klik op "+ Nieuw" in de sidebar
-2. **Timer starten**:
-   - Selecteer een project in de dropdown
-   - Klik op "Start"
-   - Werk aan je taak
-   - Klik op "Stop" als je klaar bent
-3. **Handmatig invoeren**: Vul het formulier in onder "Handmatige invoer"
-4. **Exporteren**: Klik op "Exporteer CSV" voor een Excel-compatible bestand
+**Is het echt gratis?**
+Ja, 100% gratis en open-source. Geen verborgen kosten of abonnementen.
 
-### Tray App
+**Kan ik de broncode aanpassen?**
+Absoluut! Het is open-source onder de MIT licentie.
 
-1. Klik op het klok-icoon in je menubalk
-2. Selecteer een project om de timer te starten
-3. De timer loopt zichtbaar in je menubalk
-4. Klik op "Stop Timer" als je klaar bent
-
-### Activity Tracker Commando's
-
-```bash
-# Start tracking
-python activity_tracker.py start
-
-# Bekijk samenvatting van vandaag
-python activity_tracker.py summary
-
-# Bekijk samenvatting van specifieke dag
-python activity_tracker.py summary --date 2024-01-15
-
-# Voeg automatische regel toe
-python activity_tracker.py add-rule "klantnaam" "Project X"
-
-# Bekijk alle regels
-python activity_tracker.py list-rules
-```
-
-## Automatische toewijzingsregels
-
-De activity tracker kan automatisch activiteiten aan projecten koppelen:
-
-```bash
-# Als de window titel "ACME" bevat → koppel aan "ACME Project"
-python activity_tracker.py add-rule "acme" "ACME Project"
-
-# Als je in Visual Studio Code werkt → koppel aan "Development"
-python activity_tracker.py add-rule "visual studio code" "Development"
-```
-
-## Data opslag
-
-- **Web interface**: Opgeslagen in browser LocalStorage
-- **Tray app & Tracker**: Opgeslagen in `tracker/data/` als JSON/CSV bestanden
-
-Je data blijft altijd lokaal. Niets wordt naar externe servers gestuurd.
-
-## Platformondersteuning
-
-| Feature | Windows | macOS | Linux |
-|---------|---------|-------|-------|
-| Web Interface | ✅ | ✅ | ✅ |
-| Tray App | ✅ | ✅ | ✅ |
-| Activity Tracker | ✅ | ✅ | ✅* |
-
-\* Linux vereist `xdotool` voor window tracking
-
-## Voordelen
-
-- **100% gratis**: Geen abonnementskosten
-- **Privacy-first**: Alle data blijft lokaal
-- **Volledig aanpasbaar**: Open-source, pas aan naar wens
-- **Facturatie-ready**: Export naar CSV voor Excel/Google Sheets
-- **Geen internet nodig**: Werkt volledig offline
-
-## Tips
-
-1. **Snelheid**: Gebruik de tray app voor snel switchen tussen projecten
-2. **Backup**: Kopieer periodiek de `tracker/data/` map voor backup
-3. **Facturatie**: Exporteer wekelijks je uren naar CSV en importeer in Excel
-4. **Uurtarief**: Stel je uurtarief in per project voor automatische bedragberekening
+**Werkt het op Linux?**
+Ja! Gebruik `npm run build:linux` om een AppImage of .deb te maken.
 
 ## Licentie
 
-MIT License - Vrij te gebruiken en aan te passen.
+MIT License - Vrij te gebruiken, aanpassen en distribueren.
+
+---
+
+Gemaakt met ❤️ voor freelancers en kleine bedrijven die een simpele, gratis oplossing zoeken.
