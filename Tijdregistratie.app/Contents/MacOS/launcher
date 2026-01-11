@@ -1,0 +1,16 @@
+#!/bin/bash
+# Tijdregistratie App Launcher
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+APP_DIR="$SCRIPT_DIR/../../.."
+TRACKER_DIR="$APP_DIR/tracker"
+
+cd "$TRACKER_DIR"
+
+# Check en installeer dependencies indien nodig
+python3 -c "import customtkinter" 2>/dev/null || {
+    pip3 install customtkinter pillow --quiet
+}
+
+# Start de desktop app
+exec python3 desktop_app.py
