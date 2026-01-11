@@ -5,12 +5,9 @@ psutil>=5.9.0
 pystray>=0.19.0
 Pillow>=9.0.0
 
-# macOS specifiek (optioneel, voor betere integratie)
-# rumps>=0.4.0
+# macOS - voor window tracking
+pyobjc-framework-Quartz>=9.0
+pyobjc-framework-AppKit>=9.0
 
-# Windows specifiek (optioneel, voor window tracking)
-# pywin32>=305
-
-# macOS specifiek voor window tracking (optioneel)
-# pyobjc-framework-Quartz>=9.0
-# pyobjc-framework-AppKit>=9.0
+# Windows - voor window tracking
+# pip install pywin32
