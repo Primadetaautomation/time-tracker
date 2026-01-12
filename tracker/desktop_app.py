@@ -67,6 +67,10 @@ class TimeTrackerApp(ctk.CTk):
         self.timer_start = None
         self.timer_project = None
 
+        # Hourly check state
+        self.hourly_check_id = None
+        self.check_interval_ms = 60 * 60 * 1000  # 1 uur in milliseconden
+
         # Build UI
         self.create_widgets()
         self.update_stats()
@@ -239,6 +243,31 @@ class TimeTrackerApp(ctk.CTk):
             command=self.toggle_auto_tracking
         )
         auto_track_switch.grid(row=6, column=0, padx=20, pady=10, sticky="w")
+
+        # Auto-pauze optie (vraagt elk uur of je nog bezig bent)
+        self.auto_pause_var = ctk.BooleanVar(value=True)
+        auto_pause_check = ctk.CTkCheckBox(
+            sidebar,
+            text="Uurlijkse check",
+            variable=self.auto_pause_var,
+            font=ctk.CTkFont(size=12)
+        )
+        auto_pause_check.grid(row=7, column=0, padx=30, pady=(0, 10), sticky="w")
+
+        # Always on top optie
+        self.always_on_top_var = ctk.BooleanVar(value=False)
+        always_on_top_check = ctk.CTkCheckBox(
+            sidebar,
+            text="Altijd bovenop",
+            variable=self.always_on_top_var,
+            command=self.toggle_always_on_top,
+            font=ctk.CTkFont(size=12)
+        )
+        always_on_top_check.grid(row=8, column=0, padx=20, pady=(5, 10), sticky="w")
+
+    def toggle_always_on_top(self):
+        """Toggle always on top mode."""
+        self.attributes('-topmost', self.always_on_top_var.get())
 
     def create_main_content(self):
         """Maak het hoofdcontent gebied."""
@@ -709,8 +738,15 @@ class TimeTrackerApp(ctk.CTk):
                     for row in reader:
                         hours = float(row.get('Duur (uren)', 0) or 0)
                         project_name = row.get('Project', '') or 'Auto'
-                        project = next((p for p in self.projects if p['name'] == project_name), None)
-                        rate = project.get('rate', 0) if project else 0
+
+                        # Gebruik tarief/bedrag uit CSV als beschikbaar, anders lookup
+                        if 'Tarief' in row and row['Tarief']:
+                            rate = float(row['Tarief'])
+                            amount = float(row.get('Bedrag', 0) or 0)
+                        else:
+                            project = next((p for p in self.projects if p['name'] == project_name), None)
+                            rate = project.get('rate', 0) if project else 0
+                            amount = round(hours * rate, 2)
 
                         all_entries.append({
                             'date': row['Datum'],
@@ -718,7 +754,7 @@ class TimeTrackerApp(ctk.CTk):
                             'hours': hours,
                             'description': f"{row['Applicatie']} - {row.get('Venstertitel', '')[:50]}",
                             'rate': rate,
-                            'amount': round(hours * rate, 2),
+                            'amount': amount,
                             'source': 'Auto'
                         })
 
@@ -789,23 +825,107 @@ class TimeTrackerApp(ctk.CTk):
     def toggle_auto_tracking(self):
         """Toggle automatische tracking."""
         if self.auto_track_var.get():
+            # Haal het geselecteerde project op
+            project_name = self.timer_project_var.get()
+            if project_name == "Selecteer project...":
+                messagebox.showwarning(
+                    "Geen project",
+                    "Selecteer eerst een project voordat je auto-tracking start."
+                )
+                self.auto_track_var.set(False)
+                return
+
+            # Zoek het project en tarief
+            project_rate = 0
+            for p in self.projects:
+                if p['name'] == project_name:
+                    project_rate = p.get('rate', 0)
+                    break
+
             self.tracking_active = True
             self.session_start = datetime.now()
-            messagebox.showinfo("Auto-tracking", "Automatische tracking gestart!\n\nAlle activiteit wordt nu gelogd.")
+            messagebox.showinfo(
+                "Auto-tracking",
+                f"Automatische tracking gestart!\n\n"
+                f"Project: {project_name}\n"
+                f"Tarief: €{project_rate}/uur\n\n"
+                f"Alle activiteit wordt nu gelogd."
+            )
 
             def track():
-                tracker = EnhancedActivityTracker()
+                # Maak tracker met geselecteerd project en tarief
+                tracker = EnhancedActivityTracker(
+                    project_name=project_name,
+                    project_rate=project_rate
+                )
                 while self.tracking_active:
                     tracker.track_once()
                     time.sleep(5)
 
             self.tracking_thread = threading.Thread(target=track, daemon=True)
             self.tracking_thread.start()
+
+            # Disable project selector tijdens tracking
+            self.timer_project_dropdown.configure(state="disabled")
+
+            # Start uurlijkse check als ingeschakeld
+            if self.auto_pause_var.get():
+                self.start_hourly_check()
         else:
+            self.stop_hourly_check()
             self.tracking_active = False
+            self.timer_project_dropdown.configure(state="normal")
             self.update_entries_list()
             self.update_stats()
             messagebox.showinfo("Auto-tracking", "Automatische tracking gestopt.")
+
+    def start_hourly_check(self):
+        """Start de uurlijkse check timer."""
+        self.stop_hourly_check()  # Stop bestaande timer
+        self.hourly_check_id = self.after(self.check_interval_ms, self.do_hourly_check)
+
+    def stop_hourly_check(self):
+        """Stop de uurlijkse check timer."""
+        if self.hourly_check_id:
+            self.after_cancel(self.hourly_check_id)
+            self.hourly_check_id = None
+
+    def do_hourly_check(self):
+        """Voer de uurlijkse check uit - vraag of gebruiker nog bezig is."""
+        if not self.tracking_active:
+            return
+
+        # Bereken hoelang er al gewerkt is
+        if self.session_start:
+            elapsed = datetime.now() - self.session_start
+            hours = elapsed.total_seconds() / 3600
+            elapsed_str = f"{int(hours)}u {int((hours % 1) * 60)}m"
+        else:
+            elapsed_str = "onbekend"
+
+        # Toon dialoog
+        response = messagebox.askyesno(
+            "⏰ Nog aan het werk?",
+            f"Je bent al {elapsed_str} aan het werk.\n\n"
+            f"Ben je nog steeds bezig?\n\n"
+            f"• Ja = Doorgaan met tracking\n"
+            f"• Nee = Pauzeer tracking",
+            icon='question'
+        )
+
+        if response:
+            # Ja - doorgaan, plan volgende check
+            if self.auto_pause_var.get() and self.tracking_active:
+                self.hourly_check_id = self.after(self.check_interval_ms, self.do_hourly_check)
+        else:
+            # Nee - pauzeer tracking
+            self.auto_track_var.set(False)
+            self.toggle_auto_tracking()
+            messagebox.showinfo(
+                "Gepauzeerd",
+                "Auto-tracking is gepauzeerd.\n\n"
+                "Zet de schakelaar weer aan om door te gaan."
+            )
 
     def on_close(self):
         """Handle window close."""
@@ -813,6 +933,7 @@ class TimeTrackerApp(ctk.CTk):
             if messagebox.askyesno("Timer actief", "De timer loopt nog. Wil je stoppen en de tijd opslaan?"):
                 self.stop_timer()
 
+        self.stop_hourly_check()
         self.tracking_active = False
         self.destroy()
 

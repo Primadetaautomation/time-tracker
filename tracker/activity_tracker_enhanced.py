@@ -287,13 +287,21 @@ def get_idle_time():
 class EnhancedActivityTracker:
     """Verbeterde activity tracker met gedetailleerde logging."""
 
-    def __init__(self):
+    def __init__(self, project_name=None, project_rate=0):
         self.config = self.load_config()
         self.current_activity = None
         self.current_start = None
         self.running = False
         self.last_active_time = datetime.now()
         self.is_idle = False
+        # Project override - wordt gebruikt in plaats van auto-matching
+        self.project_name = project_name
+        self.project_rate = project_rate
+
+    def set_project(self, project_name, project_rate=0):
+        """Stel het actieve project in voor logging."""
+        self.project_name = project_name
+        self.project_rate = project_rate
 
     def load_config(self):
         """Laad configuratie."""
@@ -367,7 +375,13 @@ class EnhancedActivityTracker:
         if duration < self.config["min_duration_seconds"]:
             return
 
-        project = self.match_project(activity)
+        # Gebruik project override als gezet, anders auto-match
+        if self.project_name:
+            project = self.project_name
+            rate = self.project_rate
+        else:
+            project = self.match_project(activity) or 'Auto'
+            rate = 0
 
         # Voeg header toe als bestand niet bestaat
         write_header = not ACTIVITY_LOG.exists()
@@ -378,10 +392,11 @@ class EnhancedActivityTracker:
                 writer.writerow([
                     'Datum', 'Starttijd', 'Eindtijd', 'Duur (sec)', 'Duur (uren)',
                     'Applicatie', 'Venstertitel', 'URL', 'Categorie',
-                    'Email Subject', 'Email Van', 'Project', 'Was Idle'
+                    'Email Subject', 'Email Van', 'Project', 'Tarief', 'Bedrag', 'Was Idle'
                 ])
 
             hours = round(duration / 3600, 2)
+            amount = round(hours * rate, 2)
 
             writer.writerow([
                 start_time.strftime('%Y-%m-%d'),
@@ -395,7 +410,9 @@ class EnhancedActivityTracker:
                 activity.get('category', ''),
                 activity.get('email_subject', '')[:200],
                 activity.get('email_from', '')[:100],
-                project or '',
+                project,
+                rate,
+                amount,
                 'Ja' if self.is_idle else 'Nee'
             ])
 
