@@ -48,12 +48,22 @@ function createWindow() {
             event.preventDefault();
             mainWindow.hide();
 
-            // Toon notificatie alleen de eerste keer
-            if (tray && !app.isHidden) {
-                tray.displayBalloon({
-                    title: 'Tijdregistratie',
-                    content: 'De app draait nog op de achtergrond. Klik op het icoon om te openen.'
-                });
+            // Toon notificatie alleen de eerste keer (platform-specifiek)
+            if (!app.isHidden) {
+                const { Notification } = require('electron');
+                if (process.platform === 'win32' && tray) {
+                    // Windows: gebruik tray balloon
+                    tray.displayBalloon({
+                        title: 'Tijdregistratie',
+                        content: 'De app draait nog op de achtergrond. Klik op het icoon om te openen.'
+                    });
+                } else if (Notification.isSupported()) {
+                    // macOS/Linux: gebruik Notification API
+                    new Notification({
+                        title: 'Tijdregistratie',
+                        body: 'De app draait nog op de achtergrond. Klik op het icoon om te openen.'
+                    }).show();
+                }
                 app.isHidden = true;
             }
         }

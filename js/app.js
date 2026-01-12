@@ -421,13 +421,14 @@ class TimeTrackerApp {
 
         const data = entries.map(entry => {
             const project = projectMap[entry.projectId];
+            const rate = (project && project.rate != null) ? project.rate : 0;
             return {
                 Datum: entry.date,
                 Project: project ? project.name : 'Onbekend',
                 Beschrijving: entry.description || '',
                 Uren: parseFloat(entry.hours).toFixed(2),
-                Tarief: project ? project.rate.toFixed(2) : '0.00',
-                Bedrag: project ? (parseFloat(entry.hours) * project.rate).toFixed(2) : '0.00'
+                Tarief: rate.toFixed(2),
+                Bedrag: (parseFloat(entry.hours) * rate).toFixed(2)
             };
         });
 
