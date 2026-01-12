@@ -8,7 +8,7 @@ Een gratis tijdregistratie app met **automatische activity tracking** en **handm
 
 ### macOS
 
-1. **Download** [Tijdregistratie-macOS.dmg](https://github.com/Primadetaautomation/test/releases/latest/download/Tijdregistratie-macOS.dmg)
+1. **Download** [Tijdregistratie-macOS.dmg](https://github.com/Primadetaautomation/time-tracker/releases/latest/download/Tijdregistratie-macOS.dmg)
 2. **Open** de .dmg
 3. **Sleep** Tijdregistratie naar Applications
 4. **Open** de app (eerste keer: rechtermuisknop → Open)
@@ -18,7 +18,7 @@ Een gratis tijdregistratie app met **automatische activity tracking** en **handm
 
 ### Windows
 
-1. **Download** [Tijdregistratie-Windows.zip](https://github.com/Primadetaautomation/test/releases/latest/download/Tijdregistratie-Windows.zip)
+1. **Download** [Tijdregistratie-Windows.zip](https://github.com/Primadetaautomation/time-tracker/releases/latest/download/Tijdregistratie-Windows.zip)
 2. **Pak uit** de ZIP
 3. **Dubbelklik** op `Tijdregistratie.exe`
 
@@ -86,7 +86,7 @@ Data locatie: `~/tijdregistratie/tracker/data/`
 
 **macOS:**
 ```bash
-git clone https://github.com/Primadetaautomation/test.git
+git clone https://github.com/Primadetaautomation/time-tracker.git
 cd test/tracker
 pip3 install pyinstaller customtkinter pillow psutil pyobjc-framework-Quartz pyobjc-framework-Cocoa
 ./build-mac.sh
@@ -94,7 +94,7 @@ pip3 install pyinstaller customtkinter pillow psutil pyobjc-framework-Quartz pyo
 
 **Windows:**
 ```bash
-git clone https://github.com/Primadetaautomation/test.git
+git clone https://github.com/Primadetaautomation/time-tracker.git
 cd test\tracker
 pip install pyinstaller customtkinter pillow psutil pywin32
 build-windows.bat
