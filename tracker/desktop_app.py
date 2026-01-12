@@ -683,25 +683,77 @@ class TimeTrackerApp(ctk.CTk):
             return
 
         try:
+            # Verzamel alle entries (handmatig + auto-tracked)
+            all_entries = []
+
+            # Handmatige entries
+            for entry in self.manual_entries:
+                project = next((p for p in self.projects if p['name'] == entry['project']), None)
+                rate = project.get('rate', 0) if project else 0
+                amount = float(entry['hours']) * rate
+
+                all_entries.append({
+                    'date': entry['date'],
+                    'project': entry['project'],
+                    'hours': float(entry['hours']),
+                    'description': entry.get('description', ''),
+                    'rate': rate,
+                    'amount': round(amount, 2),
+                    'source': 'Handmatig'
+                })
+
+            # Auto-tracked entries
+            if ACTIVITY_LOG.exists():
+                with open(ACTIVITY_LOG, 'r', encoding='utf-8') as f:
+                    reader = csv.DictReader(f, delimiter=';')
+                    for row in reader:
+                        hours = float(row.get('Duur (uren)', 0) or 0)
+                        project_name = row.get('Project', '') or 'Auto'
+                        project = next((p for p in self.projects if p['name'] == project_name), None)
+                        rate = project.get('rate', 0) if project else 0
+
+                        all_entries.append({
+                            'date': row['Datum'],
+                            'project': project_name,
+                            'hours': hours,
+                            'description': f"{row['Applicatie']} - {row.get('Venstertitel', '')[:50]}",
+                            'rate': rate,
+                            'amount': round(hours * rate, 2),
+                            'source': 'Auto'
+                        })
+
+            if not all_entries:
+                messagebox.showwarning("Geen data", "Er zijn geen uren om te exporteren.")
+                return
+
+            # Sorteer op datum
+            all_entries.sort(key=lambda x: x['date'])
+
+            # Schrijf CSV
             with open(filename, 'w', newline='', encoding='utf-8') as f:
                 writer = csv.writer(f, delimiter=';')
-                writer.writerow(['Datum', 'Project', 'Uren', 'Beschrijving', 'Tarief', 'Bedrag'])
+                writer.writerow(['Datum', 'Project', 'Uren', 'Beschrijving', 'Tarief', 'Bedrag', 'Bron'])
 
-                for entry in self.manual_entries:
-                    project = next((p for p in self.projects if p['name'] == entry['project']), None)
-                    rate = project.get('rate', 0) if project else 0
-                    amount = float(entry['hours']) * rate
-
+                for entry in all_entries:
                     writer.writerow([
                         entry['date'],
                         entry['project'],
                         entry['hours'],
-                        entry.get('description', ''),
-                        rate,
-                        round(amount, 2)
+                        entry['description'],
+                        entry['rate'],
+                        entry['amount'],
+                        entry['source']
                     ])
 
-            messagebox.showinfo("Succes", f"Geëxporteerd naar:\n{filename}")
+            total_hours = sum(e['hours'] for e in all_entries)
+            total_amount = sum(e['amount'] for e in all_entries)
+
+            messagebox.showinfo(
+                "Succes",
+                f"Geëxporteerd naar:\n{filename}\n\n"
+                f"Totaal: {total_hours:.2f} uur\n"
+                f"Bedrag: €{total_amount:.2f}"
+            )
 
         except Exception as e:
             messagebox.showerror("Fout", f"Export mislukt: {e}")
