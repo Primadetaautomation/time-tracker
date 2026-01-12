@@ -2,181 +2,68 @@
 
 Een gratis tijdregistratie app met **automatische activity tracking** en **handmatige invoer**.
 
-## Snel Starten (Mac)
+---
 
-```bash
-# 1. Clone de repository
-git clone https://github.com/Primadetaautomation/test.git tijdregistratie
-cd tijdregistratie
-git checkout claude/create-time-tracking-repo-bqNVW
+## Download & Installeer
 
-# 2. Installeer Python dependencies
-pip3 install customtkinter pillow psutil pyobjc-framework-Quartz pyobjc-framework-Cocoa
+### macOS
 
-# 3. Start de app
-cd tracker
-python3 desktop_app.py
-```
+1. **Download** [Tijdregistratie-macOS.dmg](https://github.com/Primadetaautomation/test/releases/latest/download/Tijdregistratie-macOS.dmg)
+2. **Open** de .dmg
+3. **Sleep** Tijdregistratie naar Applications
+4. **Open** de app (eerste keer: rechtermuisknop → Open)
 
-## Snel Starten (Windows)
+> **Permissies:** De app vraagt om Toegankelijkheid permissies voor activity tracking.
+> Ga naar Systeeminstellingen → Privacy & Beveiliging → Toegankelijkheid
 
-```bash
-# 1. Clone de repository
-git clone https://github.com/Primadetaautomation/test.git tijdregistratie
-cd tijdregistratie
-git checkout claude/create-time-tracking-repo-bqNVW
+### Windows
 
-# 2. Installeer Python dependencies
-pip install customtkinter pillow psutil pywin32
+1. **Download** [Tijdregistratie-Windows.zip](https://github.com/Primadetaautomation/test/releases/latest/download/Tijdregistratie-Windows.zip)
+2. **Pak uit** de ZIP
+3. **Dubbelklik** op `Tijdregistratie.exe`
 
-# 3. Start de app
-cd tracker
-python desktop_app.py
-```
-
-## Drie Manieren om te Starten
-
-### Optie 1: Python Desktop App (Aanbevolen)
-Moderne UI met alle features.
-
-```bash
-cd tracker
-python3 desktop_app.py
-```
-
-Of dubbelklik op `tracker/Tijdregistratie.command` (Mac)
-
-### Optie 2: Browser Interface
-Open `index.html` in je browser. Geen installatie nodig!
-
-### Optie 3: Electron Desktop App
-```bash
-npm install
-npm start
-```
+> **Windows Defender:** Bij eerste keer kan Windows een waarschuwing tonen.
+> Klik "Meer info" → "Toch uitvoeren"
 
 ---
 
 ## Features
 
-| Feature | Desktop App | Browser | Electron |
-|---------|-------------|---------|----------|
-| Timer met start/stop | ✅ | ✅ | ✅ |
-| Handmatige invoer | ✅ | ✅ | ✅ |
-| Automatische activity tracking | ✅ | ❌ | ❌ |
-| Browser URL tracking | ✅ | ❌ | ❌ |
-| Email tracking | ✅ | ❌ | ❌ |
-| Idle detection | ✅ | ❌ | ❌ |
-| Projecten beheer | ✅ | ✅ | ✅ |
-| CSV export | ✅ | ✅ | ✅ |
-| Statistieken dashboard | ✅ | ✅ | ✅ |
-| Dark mode | ✅ | ❌ | ❌ |
-| System tray | ❌ | ❌ | ✅ |
+| Feature | Beschrijving |
+|---------|-------------|
+| Timer met start/stop | Tijd bijhouden met 1 klik |
+| Handmatige invoer | Achteraf uren registreren |
+| Auto activity tracking | Automatisch bijhouden wat je doet |
+| Browser URL tracking | Welke websites je bezoekt |
+| Email tracking | Email activiteit (Mail app) |
+| Idle detection | Pauzes automatisch detecteren |
+| Project auto-tagging | Automatisch project toewijzen |
+| CSV export | Export naar Excel/spreadsheet |
+| Statistieken | Dagelijks/wekelijks/maandelijks overzicht |
+| Dark mode | Prettig voor je ogen |
 
 ---
 
-## Automatische Activity Tracking
-
-De app kan automatisch bijhouden wat je doet:
-
-```bash
-# Start alleen de tracker (zonder UI)
-cd tracker
-python3 activity_tracker_enhanced.py start
-
-# Bekijk samenvatting van vandaag
-python3 activity_tracker_enhanced.py summary
-
-# Bekijk specifieke dag
-python3 activity_tracker_enhanced.py summary --date 2026-01-10
-```
-
-### Wat wordt gelogd?
-
-| Activiteit | Wat je ziet in CSV |
-|------------|-------------------|
-| Gmail checken | `Chrome` / `https://mail.google.com` / `email` |
-| LinkedIn bekijken | `Chrome` / `https://linkedin.com/jobs` / `social_media` |
-| VSCode coderen | `Code` / `project.ts` / `development` |
-| Zoom meeting | `zoom.us` / `meeting` |
-
-### Project Auto-Tagging
-
-```bash
-# Voeg regels toe om automatisch projecten te taggen
-python3 activity_tracker_enhanced.py add-rule "bakker" "Klant Bakker BV"
-python3 activity_tracker_enhanced.py add-rule "orbit" "Vacature ORBIT"
-python3 activity_tracker_enhanced.py add-rule "gymly" "Klant Gymly"
-
-# Bekijk regels
-python3 activity_tracker_enhanced.py list-rules
-```
-
-Nu wordt alles met "bakker" in de window titel automatisch getagd als "Klant Bakker BV"!
-
----
-
-## CSV Export
-
-### Automatisch gelogde uren
-```
-tracker/data/activity_log_detailed.csv
-```
-
-Kolommen:
-- Datum, Starttijd, Eindtijd, Duur (sec), Duur (uren)
-- Applicatie, Venstertitel, URL, Categorie
-- Email Subject, Email Van, Project, Was Idle
-
-### Handmatige uren
-Export via de app: klik "Export CSV"
-
----
-
-## macOS Permissies
-
-De eerste keer vraagt macOS om permissies:
-
-1. **Systeemvoorkeuren → Privacy & Beveiliging → Toegankelijkheid**
-   - Voeg Terminal of je IDE toe
-
-2. **Systeemvoorkeuren → Privacy & Beveiliging → Automatisering**
-   - Sta toegang toe tot Chrome/Safari/Mail (voor URL tracking)
-
----
-
-## Projectstructuur
+## Screenshots
 
 ```
-tijdregistratie/
-├── tracker/
-│   ├── desktop_app.py              # Python Desktop UI
-│   ├── activity_tracker_enhanced.py # Automatische tracking
-│   ├── tray_app.py                 # System tray app
-│   ├── Tijdregistratie.command     # Mac launcher
-│   └── data/                       # Opgeslagen data
-├── index.html                      # Browser interface
-├── js/                             # JavaScript voor browser
-├── electron/                       # Electron desktop app
-└── Tijdregistratie.app/            # macOS app bundle
++------------------------------------------+
+|  Tijdregistratie           [ - ] [ x ]   |
++------------------------------------------+
+|  Nu actief:        |  Vandaag    8.5 uur |
+|  VS Code           |  Week      32.0 uur |
+|  project.py        |  Maand    128.5 uur |
+|                    |  Bedrag   €4,285.00 |
+|  Timer  02:15:33   +----------------------+
+|  [Klant A    v]    |                      |
+|  [Start] [Stop]    |  Geregistreerde Uren |
+|                    |  2026-01-12  2.5u    |
+|  Projecten         |  2026-01-11  8.0u    |
+|  ● Klant A  €85/u  |  2026-01-10  7.5u    |
+|  ● Klant B  €75/u  |                      |
+|  ● Intern         |  [Export CSV]        |
++------------------------------------------+
 ```
-
----
-
-## Vereisten
-
-### Python Desktop App
-- Python 3.9+
-- customtkinter
-- pillow
-- psutil
-- pyobjc (Mac) of pywin32 (Windows)
-
-### Browser Interface
-- Moderne browser (Chrome, Firefox, Safari, Edge)
-
-### Electron App
-- Node.js 18+
 
 ---
 
@@ -189,6 +76,56 @@ tijdregistratie/
 - Geen tracking door derden
 - 100% offline werkbaar
 
+Data locatie: `~/tijdregistratie/tracker/data/`
+
+---
+
+## Ontwikkelaars
+
+### Bouwen vanaf broncode
+
+**macOS:**
+```bash
+git clone https://github.com/Primadetaautomation/test.git
+cd test/tracker
+pip3 install pyinstaller customtkinter pillow psutil pyobjc-framework-Quartz pyobjc-framework-Cocoa
+./build-mac.sh
+```
+
+**Windows:**
+```bash
+git clone https://github.com/Primadetaautomation/test.git
+cd test\tracker
+pip install pyinstaller customtkinter pillow psutil pywin32
+build-windows.bat
+```
+
+### Direct uitvoeren (zonder build)
+
+**macOS:**
+```bash
+cd tracker
+pip3 install customtkinter pillow psutil pyobjc-framework-Quartz pyobjc-framework-Cocoa
+python3 desktop_app.py
+```
+
+**Windows:**
+```bash
+cd tracker
+pip install customtkinter pillow psutil pywin32
+python desktop_app.py
+```
+
+---
+
+## Vereisten (alleen voor ontwikkelaars)
+
+- Python 3.9+
+- customtkinter
+- pillow
+- psutil
+- pyobjc (macOS) of pywin32 (Windows)
+
 ---
 
 ## Licentie
@@ -197,4 +134,4 @@ MIT License - Vrij te gebruiken, aanpassen en distribueren.
 
 ---
 
-Gemaakt met ❤️ voor freelancers en kleine bedrijven.
+Gemaakt voor freelancers en kleine bedrijven.

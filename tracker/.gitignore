@@ -2,4 +2,6 @@
 # Build artifacts
 dist/
 build/
-*.spec
+
+# Keep build spec files (they are config, not output)
+# *.spec
