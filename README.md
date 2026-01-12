@@ -1,146 +1,195 @@
 # Tijdregistratie
 
-Een gratis, makkelijk te installeren tijdregistratie app voor Windows en Mac.
+Een gratis tijdregistratie app met **automatische activity tracking** en **handmatige invoer**.
 
-![Screenshot](assets/screenshot.png)
+## Snel Starten (Mac)
 
-## Installeren (Makkelijk!)
+```bash
+# 1. Clone de repository
+git clone https://github.com/Primadetaautomation/test.git tijdregistratie
+cd tijdregistratie
+git checkout claude/create-time-tracking-repo-bqNVW
 
-### Optie 1: Desktop App (Aanbevolen)
+# 2. Installeer Python dependencies
+pip3 install customtkinter pillow psutil pyobjc-framework-Quartz pyobjc-framework-Cocoa
 
-**Windows:**
-1. Download en installeer [Node.js](https://nodejs.org) (LTS versie)
-2. Download deze repository als ZIP en pak uit
-3. Dubbelklik op `installers/install-windows.bat`
-4. Volg de instructies - klaar!
+# 3. Start de app
+cd tracker
+python3 desktop_app.py
+```
 
-**Mac:**
-1. Installeer Node.js: `brew install node` (of download van [nodejs.org](https://nodejs.org))
-2. Download deze repository als ZIP en pak uit
-3. Dubbelklik op `installers/install-mac.command`
-4. Sleep de app naar Applications - klaar!
+## Snel Starten (Windows)
 
-### Optie 2: Direct in Browser
+```bash
+# 1. Clone de repository
+git clone https://github.com/Primadetaautomation/test.git tijdregistratie
+cd tijdregistratie
+git checkout claude/create-time-tracking-repo-bqNVW
 
-Gewoon `index.html` openen in je browser. Werkt meteen!
+# 2. Installeer Python dependencies
+pip install customtkinter pillow psutil pywin32
 
-> **Tip:** In Chrome/Edge kun je de app "installeren" via het menu (drie puntjes) → "Installeer Tijdregistratie". Dan krijg je een echte app-icoon.
+# 3. Start de app
+cd tracker
+python desktop_app.py
+```
 
-### Optie 3: Draagbare Versie (Portable)
+## Drie Manieren om te Starten
 
-1. Download de repository
-2. Open een terminal in de folder
-3. `npm install && npm start`
+### Optie 1: Python Desktop App (Aanbevolen)
+Moderne UI met alle features.
 
-## Hoe werkt het?
+```bash
+cd tracker
+python3 desktop_app.py
+```
 
-### Timer gebruiken
-1. Maak eerst een **project** aan (klik "+ Nieuw" in de sidebar)
-2. Selecteer je project in de dropdown
-3. Klik **Start** - de timer loopt!
-4. Klik **Stop** wanneer je klaar bent
-5. Je uren worden automatisch opgeslagen
+Of dubbelklik op `tracker/Tijdregistratie.command` (Mac)
 
-### Handmatig invoeren
-- Vul het formulier in onder "Handmatige invoer"
-- Handig voor uren van gisteren of vorige week
+### Optie 2: Browser Interface
+Open `index.html` in je browser. Geen installatie nodig!
 
-### Exporteren voor facturatie
-- Klik "Exporteer CSV"
-- Open in Excel of Google Sheets
-- Inclusief berekende bedragen (als je een uurtarief hebt ingesteld)
+### Optie 3: Electron Desktop App
+```bash
+npm install
+npm start
+```
+
+---
 
 ## Features
 
-| Feature | Beschikbaar |
-|---------|-------------|
-| Timer met start/stop | ✅ |
-| Handmatige invoer | ✅ |
-| Meerdere projecten | ✅ |
-| Uurtarieven per project | ✅ |
-| Export naar CSV/Excel | ✅ |
-| Werkt offline | ✅ |
-| Desktop app (Windows/Mac) | ✅ |
-| System tray icoon | ✅ |
-| Keyboard shortcuts | ✅ |
-| Data sync tussen apparaten | ❌ (lokaal alleen) |
+| Feature | Desktop App | Browser | Electron |
+|---------|-------------|---------|----------|
+| Timer met start/stop | ✅ | ✅ | ✅ |
+| Handmatige invoer | ✅ | ✅ | ✅ |
+| Automatische activity tracking | ✅ | ❌ | ❌ |
+| Browser URL tracking | ✅ | ❌ | ❌ |
+| Email tracking | ✅ | ❌ | ❌ |
+| Idle detection | ✅ | ❌ | ❌ |
+| Projecten beheer | ✅ | ✅ | ✅ |
+| CSV export | ✅ | ✅ | ✅ |
+| Statistieken dashboard | ✅ | ✅ | ✅ |
+| Dark mode | ✅ | ❌ | ❌ |
+| System tray | ❌ | ❌ | ✅ |
 
-## Keyboard Shortcuts
+---
 
-| Actie | Windows | Mac |
-|-------|---------|-----|
-| Start/Stop timer | Ctrl+T | Cmd+T |
-| Nieuw project | Ctrl+N | Cmd+N |
-| Exporteer CSV | Ctrl+E | Cmd+E |
-| Volledig scherm | F11 | Cmd+Ctrl+F |
+## Automatische Activity Tracking
 
-## Waar worden mijn uren opgeslagen?
+De app kan automatisch bijhouden wat je doet:
 
-- **Browser versie:** In je browser (LocalStorage)
-- **Desktop app:** In je browser engine (Chromium)
-
-Al je data blijft **lokaal op je computer**. Er wordt niets naar externe servers gestuurd.
-
-### Backup maken
-Gebruik de "Exporteer CSV" functie om regelmatig een backup te maken van je uren.
-
-## Technisch
-
-### Vereisten voor bouwen
-- Node.js 18 of hoger
-- npm
-
-### Development
 ```bash
-# Installeer dependencies
-npm install
+# Start alleen de tracker (zonder UI)
+cd tracker
+python3 activity_tracker_enhanced.py start
 
-# Start in development mode
-npm start
+# Bekijk samenvatting van vandaag
+python3 activity_tracker_enhanced.py summary
 
-# Bouw voor productie
-npm run build        # Alle platforms
-npm run build:win    # Alleen Windows
-npm run build:mac    # Alleen Mac
-npm run build:linux  # Alleen Linux
+# Bekijk specifieke dag
+python3 activity_tracker_enhanced.py summary --date 2026-01-10
 ```
 
-### Projectstructuur
+### Wat wordt gelogd?
+
+| Activiteit | Wat je ziet in CSV |
+|------------|-------------------|
+| Gmail checken | `Chrome` / `https://mail.google.com` / `email` |
+| LinkedIn bekijken | `Chrome` / `https://linkedin.com/jobs` / `social_media` |
+| VSCode coderen | `Code` / `project.ts` / `development` |
+| Zoom meeting | `zoom.us` / `meeting` |
+
+### Project Auto-Tagging
+
+```bash
+# Voeg regels toe om automatisch projecten te taggen
+python3 activity_tracker_enhanced.py add-rule "bakker" "Klant Bakker BV"
+python3 activity_tracker_enhanced.py add-rule "orbit" "Vacature ORBIT"
+python3 activity_tracker_enhanced.py add-rule "gymly" "Klant Gymly"
+
+# Bekijk regels
+python3 activity_tracker_enhanced.py list-rules
+```
+
+Nu wordt alles met "bakker" in de window titel automatisch getagd als "Klant Bakker BV"!
+
+---
+
+## CSV Export
+
+### Automatisch gelogde uren
+```
+tracker/data/activity_log_detailed.csv
+```
+
+Kolommen:
+- Datum, Starttijd, Eindtijd, Duur (sec), Duur (uren)
+- Applicatie, Venstertitel, URL, Categorie
+- Email Subject, Email Van, Project, Was Idle
+
+### Handmatige uren
+Export via de app: klik "Export CSV"
+
+---
+
+## macOS Permissies
+
+De eerste keer vraagt macOS om permissies:
+
+1. **Systeemvoorkeuren → Privacy & Beveiliging → Toegankelijkheid**
+   - Voeg Terminal of je IDE toe
+
+2. **Systeemvoorkeuren → Privacy & Beveiliging → Automatisering**
+   - Sta toegang toe tot Chrome/Safari/Mail (voor URL tracking)
+
+---
+
+## Projectstructuur
+
 ```
 tijdregistratie/
-├── index.html          # Hoofdpagina
-├── manifest.json       # PWA configuratie
-├── sw.js               # Service worker (offline)
-├── package.json        # Node.js configuratie
-├── css/
-│   └── style.css
-├── js/
-│   ├── app.js          # Hoofdlogica
-│   ├── storage.js      # Data opslag
-│   └── utils.js        # Hulpfuncties
-├── electron/
-│   ├── main.js         # Desktop app main process
-│   └── preload.js      # Security bridge
-├── installers/
-│   ├── install-windows.bat
-│   └── install-mac.command
-└── assets/
-    └── icons...
+├── tracker/
+│   ├── desktop_app.py              # Python Desktop UI
+│   ├── activity_tracker_enhanced.py # Automatische tracking
+│   ├── tray_app.py                 # System tray app
+│   ├── Tijdregistratie.command     # Mac launcher
+│   └── data/                       # Opgeslagen data
+├── index.html                      # Browser interface
+├── js/                             # JavaScript voor browser
+├── electron/                       # Electron desktop app
+└── Tijdregistratie.app/            # macOS app bundle
 ```
 
-## Veelgestelde vragen
+---
 
-**Kan ik dit gebruiken op meerdere computers?**
-Ja, maar de data synchroniseert niet automatisch. Gebruik de CSV export om data over te zetten.
+## Vereisten
 
-**Is het echt gratis?**
-Ja, 100% gratis en open-source. Geen verborgen kosten of abonnementen.
+### Python Desktop App
+- Python 3.9+
+- customtkinter
+- pillow
+- psutil
+- pyobjc (Mac) of pywin32 (Windows)
 
-**Kan ik de broncode aanpassen?**
-Absoluut! Het is open-source onder de MIT licentie.
+### Browser Interface
+- Moderne browser (Chrome, Firefox, Safari, Edge)
 
-**Werkt het op Linux?**
-Ja! Gebruik `npm run build:linux` om een AppImage of .deb te maken.
+### Electron App
+- Node.js 18+
+
+---
+
+## Data & Privacy
+
+**Al je data blijft lokaal op je computer.**
+
+- Geen cloud sync
+- Geen account nodig
+- Geen tracking door derden
+- 100% offline werkbaar
+
+---
 
 ## Licentie
 
@@ -148,4 +197,4 @@ MIT License - Vrij te gebruiken, aanpassen en distribueren.
 
 ---
 
-Gemaakt met ❤️ voor freelancers en kleine bedrijven die een simpele, gratis oplossing zoeken.
+Gemaakt met ❤️ voor freelancers en kleine bedrijven.
