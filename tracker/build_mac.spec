@@ -58,7 +58,7 @@ a = Analysis(
     hiddenimports=hiddenimports,
     hookspath=[],
     hooksconfig={},
-    runtime_hooks=[],
+    runtime_hooks=['runtime_hook_macos.py'],  # macOS 26+ Tk fix
     excludes=[
         'matplotlib',
         'numpy',

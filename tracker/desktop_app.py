@@ -11,7 +11,36 @@ Features:
 - CSV export
 """
 
+import sys
+import os
+
+# macOS 26+ Tk menu fix - moet VOOR tkinter import
+# Dit voorkomt crash in NSMenuItem initWithTitle:action:keyEquivalent:
+if sys.platform == 'darwin':
+    os.environ['TK_SILENCE_DEPRECATION'] = '1'
+
 import customtkinter as ctk
+import tkinter as tk
+
+# macOS 26+ Tk menu crash workaround
+# De crash gebeurt in TkpSetMainMenubar bij het maken van menu items
+# met ongeldige keyEquivalent characters
+if sys.platform == 'darwin':
+    def _fix_macos_menu(root):
+        """Fix Tk menu crash on macOS 26+ by clearing default menus."""
+        try:
+            # Verwijder de standaard menubar die de crash veroorzaakt
+            root.createcommand('tk::mac::ShowPreferences', lambda: None)
+            root.createcommand('tk::mac::Quit', lambda: root.quit())
+        except Exception:
+            pass
+
+    # Patch CTk om de fix toe te passen
+    _original_ctk_init = ctk.CTk.__init__
+    def _patched_ctk_init(self, *args, **kwargs):
+        _original_ctk_init(self, *args, **kwargs)
+        _fix_macos_menu(self)
+    ctk.CTk.__init__ = _patched_ctk_init
 from tkinter import messagebox, filedialog
 import json
 import csv
