@@ -463,7 +463,41 @@ class TimeTrackerApp(ctk.CTk):
                     font=ctk.CTkFont(size=11),
                     text_color="gray"
                 )
-                rate_label.pack(side="right", padx=10)
+                rate_label.pack(side="right", padx=(0, 5))
+
+            # Verwijder knop (niet voor eerste project "Algemeen")
+            if project["id"] != "1":
+                delete_btn = ctk.CTkButton(
+                    frame,
+                    text="×",
+                    width=25,
+                    height=25,
+                    font=ctk.CTkFont(size=14),
+                    fg_color="transparent",
+                    hover_color="#e74c3c",
+                    command=lambda p=project: self.delete_project(p)
+                )
+                delete_btn.pack(side="right", padx=(0, 5))
+
+    def delete_project(self, project):
+        """Verwijder een project na bevestiging."""
+        if messagebox.askyesno(
+            "Project Verwijderen",
+            f"Weet je zeker dat je '{project['name']}' wilt verwijderen?\n\n"
+            "Bestaande uren blijven bewaard maar worden losgekoppeld van dit project."
+        ):
+            self.projects = [p for p in self.projects if p["id"] != project["id"]]
+            self.save_projects()
+            self.update_projects_list()
+
+            # Update dropdowns
+            project_names = [p["name"] for p in self.projects]
+            self.timer_project_dropdown.configure(values=project_names)
+            self.entry_project.configure(values=project_names)
+
+            # Reset selectie als verwijderd project was geselecteerd
+            if self.timer_project_var.get() == project["name"]:
+                self.timer_project_var.set("Selecteer project...")
 
     def update_entries_list(self):
         """Update de entries lijst."""
