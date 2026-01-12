@@ -676,7 +676,7 @@ class TimeTrackerApp(ctk.CTk):
         filename = filedialog.asksaveasfilename(
             defaultextension=".csv",
             filetypes=[("CSV files", "*.csv")],
-            initialfilename=f"tijdregistratie_{datetime.now().strftime('%Y-%m-%d')}.csv"
+            initialfile=f"tijdregistratie_{datetime.now().strftime('%Y-%m-%d')}.csv"
         )
 
         if not filename:
