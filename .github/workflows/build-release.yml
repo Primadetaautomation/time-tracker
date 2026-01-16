@@ -27,6 +27,70 @@ jobs:
           cd tracker
           python -m PyInstaller build_mac.spec --noconfirm
 
+      - name: Import Code Signing Certificate
+        env:
+          CERTIFICATE_P12: ${{ secrets.APPLE_CERTIFICATE_P12 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        run: |
+          # Decodeer certificaat
+          echo "$CERTIFICATE_P12" | base64 --decode > certificate.p12
+
+          # Maak tijdelijke keychain
+          security create-keychain -p "temp123" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "temp123" build.keychain
+
+          # Importeer certificaat
+          security import certificate.p12 -k build.keychain \
+            -P "$CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: \
+            -s -k "temp123" build.keychain
+
+          # Cleanup
+          rm certificate.p12
+
+      - name: Sign App Bundle
+        run: |
+          cd tracker
+          # Sign alle binaries in de app
+          find dist/Tijdregistratie.app -type f -perm +111 -exec \
+            codesign --force --options runtime \
+            --entitlements entitlements.plist \
+            --sign "Developer ID Application" {} \;
+
+          # Sign de hele app bundle
+          codesign --force --deep --options runtime \
+            --entitlements entitlements.plist \
+            --sign "Developer ID Application" \
+            dist/Tijdregistratie.app
+
+          # Verifieer
+          codesign --verify --deep --strict dist/Tijdregistratie.app
+
+      - name: Notarize App
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+        run: |
+          cd tracker
+
+          # Maak zip voor notarization
+          ditto -c -k --keepParent dist/Tijdregistratie.app notarize.zip
+
+          # Submit voor notarization
+          xcrun notarytool submit notarize.zip \
+            --apple-id "$APPLE_ID" \
+            --team-id "$APPLE_TEAM_ID" \
+            --password "$APPLE_APP_PASSWORD" \
+            --wait
+
+          # Staple het notarization ticket aan de app
+          xcrun stapler staple dist/Tijdregistratie.app
+
+          # Cleanup
+          rm notarize.zip
+
       - name: Create DMG
         run: |
           cd tracker
@@ -114,7 +178,7 @@ jobs:
             1. Download de .dmg
             2. Open de .dmg
             3. Sleep Tijdregistratie naar Applications
-            4. Bij eerste keer openen: Rechtermuisknop → Open
+            4. Dubbelklik om te starten
 
             **Windows:**
             1. Download de .zip
