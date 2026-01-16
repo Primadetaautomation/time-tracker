@@ -30,9 +30,19 @@ import csv
 # Detecteer besturingssysteem
 SYSTEM = platform.system()
 
-# Data directory
-DATA_DIR = Path(__file__).parent / "data"
-DATA_DIR.mkdir(exist_ok=True)
+# Data directory - gebruik user-writable locatie
+def get_data_dir():
+    """Get the data directory, works for both dev and bundled app."""
+    if SYSTEM == 'Darwin':  # macOS
+        base = Path.home() / "Library" / "Application Support" / "Tijdregistratie"
+    elif SYSTEM == 'Windows':
+        base = Path(os.environ.get('APPDATA', '')) / "Tijdregistratie"
+    else:  # Linux
+        base = Path.home() / ".tijdregistratie"
+    base.mkdir(parents=True, exist_ok=True)
+    return base
+
+DATA_DIR = get_data_dir()
 
 # Enhanced activity log bestand
 ACTIVITY_LOG = DATA_DIR / "activity_log_detailed.csv"

@@ -399,16 +399,16 @@ class TimeTrackerApp(ctk.CTk):
         add_btn.grid(row=2, column=4, padx=15, pady=5)
 
     def create_entries_section(self, parent):
-        """Maak entries tabel sectie."""
+        """Maak entries tabel sectie met selectie mogelijkheid."""
         entries_frame = ctk.CTkFrame(parent)
         entries_frame.grid(row=2, column=0, sticky="nsew")
         entries_frame.grid_columnconfigure(0, weight=1)
-        entries_frame.grid_rowconfigure(1, weight=1)
+        entries_frame.grid_rowconfigure(2, weight=1)
 
-        # Header met export knop
+        # Header met titel
         header = ctk.CTkFrame(entries_frame, fg_color="transparent")
         header.grid(row=0, column=0, sticky="ew", padx=15, pady=(15, 5))
-        header.grid_columnconfigure(0, weight=1)
+        header.grid_columnconfigure(1, weight=1)
 
         ctk.CTkLabel(
             header,
@@ -416,18 +416,71 @@ class TimeTrackerApp(ctk.CTk):
             font=ctk.CTkFont(size=16, weight="bold")
         ).grid(row=0, column=0, sticky="w")
 
-        export_btn = ctk.CTkButton(
+        # Selecteer alles checkbox
+        self.select_all_var = ctk.BooleanVar(value=False)
+        select_all_cb = ctk.CTkCheckBox(
             header,
-            text="📥 Export CSV",
-            command=self.export_csv,
-            width=120
+            text="Alles",
+            variable=self.select_all_var,
+            command=self.toggle_select_all,
+            width=60
         )
-        export_btn.grid(row=0, column=1, sticky="e")
+        select_all_cb.grid(row=0, column=1, padx=20, sticky="w")
+
+        # Buttons frame
+        btn_frame = ctk.CTkFrame(header, fg_color="transparent")
+        btn_frame.grid(row=0, column=2, sticky="e")
+
+        self.delete_selected_btn = ctk.CTkButton(
+            btn_frame,
+            text="🗑️ Verwijder",
+            command=self.delete_selected_entries,
+            width=100,
+            fg_color="#e74c3c",
+            hover_color="#c0392b"
+        )
+        self.delete_selected_btn.pack(side="left", padx=5)
+
+        self.export_selected_btn = ctk.CTkButton(
+            btn_frame,
+            text="📥 Export",
+            command=self.export_selected_entries,
+            width=100
+        )
+        self.export_selected_btn.pack(side="left", padx=5)
+
+        export_all_btn = ctk.CTkButton(
+            btn_frame,
+            text="📥 Export Alles",
+            command=self.export_csv,
+            width=110
+        )
+        export_all_btn.pack(side="left", padx=5)
+
+        # Column headers
+        col_header = ctk.CTkFrame(entries_frame, fg_color="transparent")
+        col_header.grid(row=1, column=0, sticky="ew", padx=25, pady=(5, 0))
+
+        headers = [("", 30), ("Datum", 90), ("Start", 60), ("Eind", 60), ("Uren", 50),
+                   ("Project", 100), ("Beschrijving", 200), ("Bron", 40)]
+        for i, (text, width) in enumerate(headers):
+            ctk.CTkLabel(
+                col_header,
+                text=text,
+                font=ctk.CTkFont(size=11, weight="bold"),
+                text_color="gray",
+                width=width,
+                anchor="w"
+            ).grid(row=0, column=i, padx=2)
 
         # Entries list
         self.entries_list = ctk.CTkScrollableFrame(entries_frame)
-        self.entries_list.grid(row=1, column=0, sticky="nsew", padx=10, pady=10)
+        self.entries_list.grid(row=2, column=0, sticky="nsew", padx=10, pady=10)
         self.entries_list.grid_columnconfigure(0, weight=1)
+
+        # Store entry checkboxes
+        self.entry_checkboxes = {}
+        self.all_entries_data = []
 
         self.update_entries_list()
 
@@ -500,12 +553,16 @@ class TimeTrackerApp(ctk.CTk):
                 self.timer_project_var.set("Selecteer project...")
 
     def update_entries_list(self):
-        """Update de entries lijst."""
+        """Update de entries lijst met datum/tijd en checkboxes."""
         for widget in self.entries_list.winfo_children():
             widget.destroy()
 
+        self.entry_checkboxes = {}
+        self.all_entries_data = []
+
         # Combineer auto-tracked en handmatige entries
         all_entries = []
+        entry_id = 0
 
         # Laad auto-tracked entries
         if ACTIVITY_LOG.exists():
@@ -514,31 +571,45 @@ class TimeTrackerApp(ctk.CTk):
                     reader = csv.DictReader(f, delimiter=';')
                     for row in reader:
                         all_entries.append({
+                            'id': f"auto_{entry_id}",
                             'date': row['Datum'],
+                            'start_time': row.get('Starttijd', ''),
+                            'end_time': row.get('Eindtijd', ''),
                             'hours': float(row.get('Duur (uren)', 0) or 0),
                             'project': row.get('Project', '') or 'Auto',
-                            'description': f"{row['Applicatie']} - {row.get('Venstertitel', '')[:30]}",
+                            'description': f"{row.get('Applicatie', '')} - {row.get('Venstertitel', '')[:40]}",
                             'source': 'auto',
-                            'category': row.get('Categorie', '')
+                            'category': row.get('Categorie', ''),
+                            'rate': float(row.get('Tarief', 0) or 0),
+                            'amount': float(row.get('Bedrag', 0) or 0),
+                            'raw_row': row
                         })
+                        entry_id += 1
             except Exception as e:
                 print(f"Error loading auto entries: {e}")
 
         # Voeg handmatige entries toe
         for entry in self.manual_entries:
             all_entries.append({
+                'id': f"manual_{entry.get('id', entry_id)}",
                 'date': entry['date'],
+                'start_time': entry.get('start_time', ''),
+                'end_time': entry.get('end_time', ''),
                 'hours': float(entry['hours']),
                 'project': entry['project'],
                 'description': entry.get('description', ''),
-                'source': 'manual'
+                'source': 'manual',
+                'entry_ref': entry
             })
+            entry_id += 1
 
-        # Sorteer op datum (nieuwste eerst)
-        all_entries.sort(key=lambda x: x['date'], reverse=True)
+        # Sorteer op datum en tijd (nieuwste eerst)
+        all_entries.sort(key=lambda x: (x['date'], x.get('start_time', '')), reverse=True)
 
-        # Toon laatste 50 entries
-        for entry in all_entries[:50]:
+        self.all_entries_data = all_entries
+
+        # Toon laatste 100 entries
+        for entry in all_entries[:100]:
             self.create_entry_row(entry)
 
         if not all_entries:
@@ -548,57 +619,220 @@ class TimeTrackerApp(ctk.CTk):
                 text_color="gray"
             ).pack(pady=20)
 
+        # Reset select all
+        self.select_all_var.set(False)
+
     def create_entry_row(self, entry):
-        """Maak een entry rij."""
+        """Maak een entry rij met checkbox, datum, tijd."""
         row = ctk.CTkFrame(self.entries_list)
-        row.pack(fill="x", pady=2)
-        row.grid_columnconfigure(2, weight=1)
+        row.pack(fill="x", pady=1)
+
+        # Checkbox
+        var = ctk.BooleanVar(value=False)
+        cb = ctk.CTkCheckBox(
+            row,
+            text="",
+            variable=var,
+            width=30,
+            checkbox_width=18,
+            checkbox_height=18
+        )
+        cb.grid(row=0, column=0, padx=(5, 2), pady=4)
+        self.entry_checkboxes[entry['id']] = var
 
         # Datum
-        date_label = ctk.CTkLabel(
+        ctk.CTkLabel(
             row,
             text=entry['date'],
-            font=ctk.CTkFont(size=12),
-            width=100
-        )
-        date_label.grid(row=0, column=0, padx=10, pady=8)
+            font=ctk.CTkFont(size=11),
+            width=90,
+            anchor="w"
+        ).grid(row=0, column=1, padx=2, pady=4)
+
+        # Start tijd
+        ctk.CTkLabel(
+            row,
+            text=entry.get('start_time', '-')[:5] or '-',
+            font=ctk.CTkFont(size=11),
+            width=50,
+            anchor="w"
+        ).grid(row=0, column=2, padx=2, pady=4)
+
+        # Eind tijd
+        ctk.CTkLabel(
+            row,
+            text=entry.get('end_time', '-')[:5] or '-',
+            font=ctk.CTkFont(size=11),
+            width=50,
+            anchor="w"
+        ).grid(row=0, column=3, padx=2, pady=4)
 
         # Uren
-        hours_label = ctk.CTkLabel(
+        ctk.CTkLabel(
             row,
-            text=f"{entry['hours']:.2f}u",
-            font=ctk.CTkFont(size=12, weight="bold"),
-            width=60
-        )
-        hours_label.grid(row=0, column=1, padx=5, pady=8)
+            text=f"{entry['hours']:.2f}",
+            font=ctk.CTkFont(size=11, weight="bold"),
+            width=45,
+            anchor="w"
+        ).grid(row=0, column=4, padx=2, pady=4)
 
         # Project
-        project_label = ctk.CTkLabel(
+        ctk.CTkLabel(
             row,
-            text=entry['project'] or '-',
-            font=ctk.CTkFont(size=12),
-            width=100
-        )
-        project_label.grid(row=0, column=2, padx=5, pady=8, sticky="w")
+            text=(entry['project'] or '-')[:15],
+            font=ctk.CTkFont(size=11),
+            width=100,
+            anchor="w"
+        ).grid(row=0, column=5, padx=2, pady=4)
 
         # Beschrijving
-        desc_label = ctk.CTkLabel(
+        ctk.CTkLabel(
             row,
-            text=entry.get('description', '')[:50] or '-',
-            font=ctk.CTkFont(size=11),
-            text_color="gray"
-        )
-        desc_label.grid(row=0, column=3, padx=5, pady=8, sticky="w")
+            text=(entry.get('description', '') or '-')[:35],
+            font=ctk.CTkFont(size=10),
+            text_color="gray",
+            width=200,
+            anchor="w"
+        ).grid(row=0, column=6, padx=2, pady=4)
 
         # Source indicator
         source_text = "🤖" if entry.get('source') == 'auto' else "✍️"
-        source_label = ctk.CTkLabel(
+        ctk.CTkLabel(
             row,
             text=source_text,
-            font=ctk.CTkFont(size=12),
+            font=ctk.CTkFont(size=11),
             width=30
+        ).grid(row=0, column=7, padx=5, pady=4)
+
+    def toggle_select_all(self):
+        """Toggle alle checkboxes."""
+        select_all = self.select_all_var.get()
+        for var in self.entry_checkboxes.values():
+            var.set(select_all)
+
+    def get_selected_entries(self):
+        """Haal geselecteerde entries op."""
+        selected = []
+        for entry in self.all_entries_data:
+            if entry['id'] in self.entry_checkboxes:
+                if self.entry_checkboxes[entry['id']].get():
+                    selected.append(entry)
+        return selected
+
+    def delete_selected_entries(self):
+        """Verwijder geselecteerde entries."""
+        selected = self.get_selected_entries()
+        if not selected:
+            messagebox.showwarning("Geen selectie", "Selecteer eerst entries om te verwijderen.")
+            return
+
+        if not messagebox.askyesno(
+            "Bevestig verwijdering",
+            f"Weet je zeker dat je {len(selected)} entries wilt verwijderen?"
+        ):
+            return
+
+        # Verwijder handmatige entries
+        manual_ids_to_delete = set()
+        for entry in selected:
+            if entry['source'] == 'manual' and 'entry_ref' in entry:
+                manual_ids_to_delete.add(entry['entry_ref'].get('id'))
+
+        if manual_ids_to_delete:
+            self.manual_entries = [
+                e for e in self.manual_entries
+                if e.get('id') not in manual_ids_to_delete
+            ]
+            self.save_manual_entries()
+
+        # Verwijder auto entries uit CSV
+        auto_entries_to_keep = []
+        auto_deleted = 0
+        for entry in selected:
+            if entry['source'] == 'auto':
+                auto_deleted += 1
+
+        if auto_deleted > 0 and ACTIVITY_LOG.exists():
+            # Lees alle regels behalve de geselecteerde
+            selected_auto_ids = {e['id'] for e in selected if e['source'] == 'auto'}
+            try:
+                with open(ACTIVITY_LOG, 'r', encoding='utf-8') as f:
+                    reader = csv.DictReader(f, delimiter=';')
+                    fieldnames = reader.fieldnames
+                    rows_to_keep = []
+                    row_id = 0
+                    for row in reader:
+                        if f"auto_{row_id}" not in selected_auto_ids:
+                            rows_to_keep.append(row)
+                        row_id += 1
+
+                # Schrijf terug
+                with open(ACTIVITY_LOG, 'w', newline='', encoding='utf-8') as f:
+                    writer = csv.DictWriter(f, fieldnames=fieldnames, delimiter=';')
+                    writer.writeheader()
+                    writer.writerows(rows_to_keep)
+            except Exception as e:
+                print(f"Error deleting auto entries: {e}")
+
+        messagebox.showinfo("Verwijderd", f"{len(selected)} entries verwijderd.")
+        self.update_entries_list()
+        self.update_stats()
+
+    def export_selected_entries(self):
+        """Exporteer geselecteerde entries naar CSV."""
+        selected = self.get_selected_entries()
+        if not selected:
+            messagebox.showwarning("Geen selectie", "Selecteer eerst entries om te exporteren.")
+            return
+
+        filename = filedialog.asksaveasfilename(
+            defaultextension=".csv",
+            filetypes=[("CSV files", "*.csv")],
+            initialfile=f"tijdregistratie_selectie_{datetime.now().strftime('%Y-%m-%d')}.csv"
         )
-        source_label.grid(row=0, column=4, padx=10, pady=8)
+
+        if not filename:
+            return
+
+        try:
+            with open(filename, 'w', newline='', encoding='utf-8') as f:
+                writer = csv.writer(f, delimiter=';')
+                writer.writerow(['Datum', 'Starttijd', 'Eindtijd', 'Uren', 'Project',
+                               'Beschrijving', 'Tarief', 'Bedrag', 'Bron'])
+
+                total_hours = 0
+                total_amount = 0
+
+                for entry in selected:
+                    # Bereken tarief en bedrag
+                    project = next((p for p in self.projects if p['name'] == entry['project']), None)
+                    rate = entry.get('rate', 0) or (project.get('rate', 0) if project else 0)
+                    amount = entry.get('amount', 0) or round(entry['hours'] * rate, 2)
+
+                    writer.writerow([
+                        entry['date'],
+                        entry.get('start_time', ''),
+                        entry.get('end_time', ''),
+                        entry['hours'],
+                        entry['project'],
+                        entry.get('description', ''),
+                        rate,
+                        amount,
+                        'Auto' if entry['source'] == 'auto' else 'Handmatig'
+                    ])
+
+                    total_hours += entry['hours']
+                    total_amount += amount
+
+            messagebox.showinfo(
+                "Geëxporteerd",
+                f"✅ {len(selected)} entries geëxporteerd!\n\n"
+                f"Totaal: {total_hours:.2f} uur\n"
+                f"Bedrag: €{total_amount:.2f}\n\n"
+                f"Bestand: {Path(filename).name}"
+            )
+        except Exception as e:
+            messagebox.showerror("Fout", f"Kon niet exporteren: {e}")
 
     def update_stats(self):
         """Update statistieken."""
